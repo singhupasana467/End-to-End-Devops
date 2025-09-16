@@ -1,28 +1,33 @@
-# Stage 1: Build stage
-FROM node:18.16.0-alpine AS builder
+# Stage 1: Build stage - full Node.js with npm
+FROM node:18-alpine AS builder
 
 WORKDIR /usr/src/app
 
+# Copy package.json and package-lock.json (if present)
 COPY package*.json ./
+
+# Install dependencies (including 'serve')
 RUN npm install
 
+# Copy all source files
 COPY . .
+
+# Build your app (adjust if your build script is different)
 RUN npm run build
 
-# Install serve binary globally
-RUN npm install -g serve
-
-# Stage 2: Production stage - distroless
+# Stage 2: Production stage - distroless Node.js runtime
 FROM gcr.io/distroless/nodejs:18
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copy build directory and serve binary from builder stage
+# Copy only the built static files from builder stage
 COPY --from=builder /usr/src/app/build ./build
-COPY --from=builder /usr/local/bin/serve /usr/local/bin/serve
 
-# Expose port 3000
+# Copy node_modules including serve binary
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+
+# Expose port (adjust to your app's port)
 EXPOSE 3000
 
-# Use serve to serve static files from build folder
-CMD ["serve", "-s", "build"]
+# Start serving your static files using serve from node_modules/.bin
+CMD ["node_modules/.bin/serve", "-s", "build", "-l", "3000"]
