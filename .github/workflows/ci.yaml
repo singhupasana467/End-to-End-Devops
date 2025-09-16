@@ -1,19 +1,9 @@
-name: CI Pipeline
-
-on:
-  push:
-    branches:
-      - main
-
-env:
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  IMAGE_FRONTEND: ${{ secrets.DOCKER_USERNAME }}/frontend-app
-  IMAGE_BACKEND: ${{ secrets.DOCKER_USERNAME }}/backend-app
-
 jobs:
   build:
     runs-on: self-hosted
+    env:
+      IMAGE_FRONTEND: ${{ secrets.DOCKER_USERNAME }}/frontend-app
+      IMAGE_BACKEND: ${{ secrets.DOCKER_USERNAME }}/backend-app
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -26,30 +16,10 @@ jobs:
 
       - name: Build frontend Docker image
         run: |
-          docker build -t $IMAGE_FRONTEND:latest ./Application-Code/frontend
-          docker push $IMAGE_FRONTEND:latest
+          docker build -t "${IMAGE_FRONTEND}:latest" ./Application-Code/frontend
+          docker push "${IMAGE_FRONTEND}:latest"
 
       - name: Build backend Docker image
         run: |
-          docker build -t $IMAGE_BACKEND:latest ./Application-Code/backend
-          docker push $IMAGE_BACKEND:latest
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: 🛠️ Setup kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
-
-      - name: Deploy to Kubernetes
-        run: |
-          kubectl apply -f ./k8s/ingress.yaml
-          kubectl apply -f ./k8s/namespace.yaml
-          kubectl apply -f ./frontend/k8s/
-          kubectl apply -f ./backend/k8s/
+          docker build -t "${IMAGE_BACKEND}:latest" ./Application-Code/backend
+          docker push "${IMAGE_BACKEND}:latest"
