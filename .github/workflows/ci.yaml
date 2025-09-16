@@ -1,53 +1,20 @@
-name: CI Pipeline
+deploy:
+  needs: build
+  runs-on: ubuntu-latest
+  if: github.ref == 'refs/heads/main'
 
-on:
-  push:
-    branches:
-      - main
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-env:
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  IMAGE_FRONTEND: ${{ secrets.DOCKER_USERNAME }}/frontend-app
-  IMAGE_BACKEND: ${{ secrets.DOCKER_USERNAME }}/backend-app
+    - name: 🛠️ Setup kubeconfig
+      run: |
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
 
-jobs:
-  build:
-    runs-on: self-hosted
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Docker login
-        run: echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-
-      - name: Build frontend Docker image
-        run: |
-          docker build -t $IMAGE_FRONTEND:latest ./Application-Code/frontend
-          docker push $IMAGE_FRONTEND:latest
-
-      - name: Build backend Docker image
-        run: |
-          docker build -t $IMAGE_BACKEND:latest ./Application-Code/backend
-          docker push $IMAGE_BACKEND:latest
-
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: 🛠️ Setup kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
-
-      - name: Deploy to Kubernetes
-        run: |
-          kubectl apply -f ./k8s/ingress.yaml
-          kubectl apply -f ./k8s/namespace.yaml
-          kubectl apply -f ./frontend/k8s/
-          kubectl apply -f ./backend/k8s/
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f ./k8s/ingress.yaml
+        kubectl apply -f ./k8s/namespace.yaml
+        kubectl apply -f ./frontend/k8s/
+        kubectl apply -f ./backend/k8s/
