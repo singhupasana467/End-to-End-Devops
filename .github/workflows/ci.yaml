@@ -46,4 +46,5 @@ jobs:
           kubectl apply -f ./k8s/namespace.yaml
           kubectl apply -f ./k8s/ingress.yaml
           kubectl apply -f ./Application-Code/frontend/k8s/
+          kubectl apply -f ./Application-Code/mongodb/k8s/
           kubectl apply -f ./Application-Code/backend/k8s/
