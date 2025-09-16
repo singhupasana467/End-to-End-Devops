@@ -30,3 +30,15 @@ jobs:
         run: |
           docker build -t techietech/devops-backend:latest ./Application-Code/backend
           docker push techietech/devops-backend:latest
+
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f ./k8s/namespace.yaml
+          kubectl apply -f ./k8s/ingress.yaml
+          kubectl apply -f ./frontend/k8s/
+          kubectl apply -f ./backend/k8s/
