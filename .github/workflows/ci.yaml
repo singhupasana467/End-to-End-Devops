@@ -32,9 +32,14 @@ jobs:
           docker push techietech/devops-backend:latest
 
       - name: Set up kubeconfig
+        shell: pwsh
         run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+          if (-Not (Test-Path "$HOME\.kube")) {
+            New-Item -ItemType Directory -Path "$HOME\.kube"
+          }
+          $decoded = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.KUBE_CONFIG }}"))
+          Set-Content -Path "$HOME\.kube\config" -Value $decoded
+
 
       - name: Deploy to Kubernetes
         run: |
