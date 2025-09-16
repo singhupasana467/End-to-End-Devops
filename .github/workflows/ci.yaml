@@ -32,10 +32,10 @@ jobs:
           docker push techietech/devops-backend:latest
 
       - name: Set up kubeconfig
-        shell: pwsh
+        shell: powershell
         run: |
           if (-Not (Test-Path "$HOME\.kube")) {
-            New-Item -ItemType Directory -Path "$HOME\.kube"
+            New-Item -ItemType Directory -Path "$HOME\.kube" | Out-Null
           }
           $decoded = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.KUBE_CONFIG }}"))
           Set-Content -Path "$HOME\.kube\config" -Value $decoded
