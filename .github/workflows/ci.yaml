@@ -13,31 +13,30 @@ env:
 
 jobs:
   build:
-    runs-on: self-hosted  # Your Windows self-hosted runner
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Docker login
-        shell: powershell
-        run: |
-          echo $Env:DOCKER_PASSWORD | docker login -u $Env:DOCKER_USERNAME --password-stdin
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build frontend Docker image
-        shell: powershell
         run: |
-          docker build -t $Env:IMAGE_FRONTEND:latest .\Application-Code\frontend
-          docker push $Env:IMAGE_FRONTEND:latest
+          docker build -t $IMAGE_FRONTEND:latest ./Application-Code/frontend
+          docker push $IMAGE_FRONTEND:latest
 
       - name: Build backend Docker image
-        shell: powershell
         run: |
-          docker build -t $Env:IMAGE_BACKEND:latest .\Application-Code\backend
-          docker push $Env:IMAGE_BACKEND:latest
+          docker build -t $IMAGE_BACKEND:latest ./Application-Code/backend
+          docker push $IMAGE_BACKEND:latest
 
   deploy:
     needs: build
-    runs-on: ubuntu-latest  # Or change to windows-latest if you want to deploy from Windows too
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
