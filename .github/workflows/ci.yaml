@@ -55,7 +55,7 @@ jobs:
 
       - name: Deploy Ingress via Helm
         run: |
-          helm upgrade --install ingress-chart ./helm/ingress-chart --namespace devops-project --create-namespace
+          helm upgrade --install ingress-chart ./helm/ingress --namespace devops-project --create-namespace
 
 
       - name: Install Prometheus via Helm
