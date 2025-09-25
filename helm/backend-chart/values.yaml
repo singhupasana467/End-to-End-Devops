@@ -1,0 +1,13 @@
+image:
+  repository: techietech/devops-backend
+  tag: latest
+service:
+  type: ClusterIP
+  port: 3500
+ingress:
+  enabled: true
+  hosts:
+    - host: devops.local
+      paths:
+        - path: /api
+          pathType: Prefix

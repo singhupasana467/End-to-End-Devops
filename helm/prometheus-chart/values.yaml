@@ -1,0 +1,15 @@
+server:
+  service:
+    type: NodePort
+    nodePort: 30901
+
+prometheus-node-exporter:
+  hostRootFsMount:
+    enabled: false
+  tolerations:
+    - key: "node.kubernetes.io/unschedulable"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+pushgateway:
+  enabled: true

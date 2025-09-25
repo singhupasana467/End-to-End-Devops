@@ -6,11 +6,12 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: self-hosted
     env:
       IMAGE_FRONTEND: ${{ secrets.DOCKER_USERNAME }}/devops-frontend
       IMAGE_BACKEND: ${{ secrets.DOCKER_USERNAME }}/devops-backend
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -21,15 +22,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build frontend Docker image
+      - name: Build and push frontend Docker image
         run: |
-          docker build -t techietech/devops-frontend:latest ./Application-Code/frontend
-          docker push techietech/devops-frontend:latest
+          docker build -t $IMAGE_FRONTEND:latest ./Application-Code/frontend
+          docker push $IMAGE_FRONTEND:latest
 
-      - name: Build backend Docker image
+      - name: Build and push backend Docker image
         run: |
-          docker build -t techietech/devops-backend:latest ./Application-Code/backend
-          docker push techietech/devops-backend:latest
+          docker build -t $IMAGE_BACKEND:latest ./Application-Code/backend
+          docker push $IMAGE_BACKEND:latest
 
       - name: Set up kubeconfig
         shell: powershell
@@ -40,11 +41,34 @@ jobs:
           $decoded = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.KUBE_CONFIG }}"))
           Set-Content -Path "$HOME\.kube\config" -Value $decoded
 
-
-      - name: Deploy to Kubernetes
+      - name: Deploy Frontend via Helm
         run: |
-          kubectl apply -f ./k8s/namespace.yaml
-          kubectl apply -f ./k8s/ingress.yaml
-          kubectl apply -f ./Application-Code/frontend/k8s/
-          kubectl apply -f ./Application-Code/mongodb/k8s/
-          kubectl apply -f ./Application-Code/backend/k8s/
+          helm upgrade --install frontend ./helm/frontend-chart --namespace dev --create-namespace
+
+      - name: Deploy Backend via Helm
+        run: |
+          helm upgrade --install backend ./helm/backend-chart --namespace dev --create-namespace
+
+      - name: Deploy MongoDB via Helm
+        run: |
+          helm upgrade --install mongodb ./helm/mongodb-chart --namespace dev --create-namespace
+
+      - name: Deploy Ingress via Helm
+        run: |
+          helm upgrade --install ingress ./helm/ingress-chart --namespace dev --create-namespace
+
+
+      - name: Install Prometheus via Helm
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+          helm upgrade --install prometheus prometheus-community/prometheus --namespace monitoring --create-namespace
+
+      - name: Install Grafana via Helm
+        run: |
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+          helm upgrade --install grafana grafana/grafana --namespace monitoring --create-namespace `
+            --set adminUser=admin `
+            --set adminPassword=${{ secrets.GRAFANA_PASSWORD }} `
+            --set service.type=ClusterIP

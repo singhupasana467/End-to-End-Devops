@@ -1,0 +1,21 @@
+dependencies:
+- name: backend-chart
+  repository: file://charts/backend-chart
+  version: 0.1.0
+- name: frontend-chart
+  repository: file://charts/frontend-chart
+  version: 0.1.0
+- name: mongo-chart
+  repository: file://charts/mongo-chart
+  version: 0.1.0
+- name: prometheus-chart
+  repository: file://charts/prometheus-chart
+  version: 0.1.0
+- name: grafana-chart
+  repository: file://charts/grafana-chart
+  version: 0.1.0
+- name: ingress-chart
+  repository: file://charts/ingress-chart
+  version: 0.1.0
+digest: sha256:13518c1ad396a9e08eb98152d8049c7b9cf62cb416c28d7709d142a4ef208a76
+generated: "2025-09-25T23:06:15.0683519+05:30"
