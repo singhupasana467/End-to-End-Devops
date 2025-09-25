@@ -43,19 +43,19 @@ jobs:
 
       - name: Deploy Frontend via Helm
         run: |
-          helm upgrade --install frontend ./helm/frontend-chart --namespace dev --create-namespace
+          helm upgrade --install frontend-chart ./helm/frontend-chart --namespace devops-project --create-namespace
 
       - name: Deploy Backend via Helm
         run: |
-          helm upgrade --install backend ./helm/backend-chart --namespace dev --create-namespace
+          helm upgrade --install backend-chart ./helm/backend-chart --namespace devops-project --create-namespace
 
       - name: Deploy MongoDB via Helm
         run: |
-          helm upgrade --install mongodb ./helm/mongodb-chart --namespace dev --create-namespace
+          helm upgrade --install mongo-chart ./helm/mongodb-chart --namespace devops-project --create-namespace
 
       - name: Deploy Ingress via Helm
         run: |
-          helm upgrade --install ingress ./helm/ingress-chart --namespace dev --create-namespace
+          helm upgrade --install ingress-chart ./helm/ingress-chart --namespace devops-project --create-namespace
 
 
       - name: Install Prometheus via Helm
